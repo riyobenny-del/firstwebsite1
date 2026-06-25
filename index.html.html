@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online Feedback System</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background: linear-gradient(-45deg,#1d2671,#c33764,#00c9ff,#92fe9d);
+    background-size:400% 400%;
+    animation:bg 10s ease infinite;
+    min-height:100vh;
+    color:white;
+}
+
+@keyframes bg{
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+}
+
+nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px 40px;
+    background:rgba(255,255,255,0.1);
+    backdrop-filter:blur(15px);
+}
+
+nav h1{
+    font-size:28px;
+}
+
+nav ul{
+    display:flex;
+    list-style:none;
+    gap:20px;
+}
+
+nav a{
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.page{
+    display:none;
+    padding:30px;
+}
+
+.active{
+    display:block;
+}
+
+.hero{
+    text-align:center;
+    padding-top:120px;
+}
+
+.hero h2{
+    font-size:55px;
+}
+
+.hero p{
+    margin:20px 0;
+    font-size:20px;
+}
+
+.card{
+    max-width:500px;
+    margin:auto;
+    background:rgba(255,255,255,0.15);
+    backdrop-filter:blur(15px);
+    padding:30px;
+    border-radius:25px;
+    box-shadow:0 10px 25px rgba(0,0,0,.3);
+}
+
+input, textarea, select{
+    width:100%;
+    padding:14px;
+    margin:10px 0;
+    border:none;
+    border-radius:12px;
+}
+
+button{
+    padding:14px 25px;
+    border:none;
+    border-radius:30px;
+    background:#ff4081;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+}
+
+.stars{
+    font-size:35px;
+    margin:15px 0;
+}
+
+.stars span{
+    cursor:pointer;
+    color:gray;
+}
+
+.activeStar{
+    color:gold;
+}
+
+.feedback-card{
+    background:white;
+    color:black;
+    padding:20px;
+    border-radius:20px;
+    margin:15px auto;
+    max-width:700px;
+}
+
+.dashboard{
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    flex-wrap:wrap;
+}
+
+.box{
+    width:220px;
+    padding:30px;
+    border-radius:20px;
+    background:rgba(255,255,255,0.2);
+    text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+    <h1>Feedback Hub</h1>
+    <ul>
+        <li><a onclick="showPage('home')">Home</a></li>
+        <li><a onclick="showPage('login')">Login</a></li>
+        <li><a onclick="showPage('feedback')">Feedback</a></li>
+        <li><a onclick="showPage('display')">Reviews</a></li>
+        <li><a onclick="showPage('dashboard')">Dashboard</a></li>
+        <li><a onclick="showPage('profile')">Profile</a></li>
+    </ul>
+</nav>
+
+<!-- Home -->
+<div id="home" class="page active">
+    <div class="hero">
+        <h2>Online Feedback System</h2>
+        <p>Your voice helps us improve.</p>
+        <button onclick="showPage('feedback')">Start Feedback</button>
+    </div>
+</div>
+
+<!-- Login -->
+<div id="login" class="page">
+    <div class="card">
+        <h2>Login / Signup</h2>
+        <input placeholder="Email">
+        <input type="password" placeholder="Password">
+        <button>Login</button>
+    </div>
+</div>
+
+<!-- Feedback -->
+<div id="feedback" class="page">
+    <div class="card">
+        <h2>Submit Feedback</h2>
+        <input id="name" placeholder="Your Name">
+
+        <select id="category">
+            <option>Website</option>
+            <option>Event</option>
+            <option>Course</option>
+            <option>Service</option>
+        </select>
+
+        <div class="stars">
+            <span onclick="rate(1)">★</span>
+            <span onclick="rate(2)">★</span>
+            <span onclick="rate(3)">★</span>
+            <span onclick="rate(4)">★</span>
+            <span onclick="rate(5)">★</span>
+        </div>
+
+        <textarea id="comment" placeholder="Comment"></textarea>
+        <button onclick="submitFeedback()">Submit</button>
+    </div>
+</div>
+
+<!-- Reviews -->
+<div id="display" class="page">
+    <input id="search" placeholder="Search by name" onkeyup="searchFeedback()">
+    <div id="feedbackList"></div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard" class="page">
+    <div class="dashboard">
+        <div class="box">
+            <h2 id="total">0</h2>
+            <p>Total Feedback</p>
+        </div>
+        <div class="box">
+            <h2 id="avg">0</h2>
+            <p>Average Rating</p>
+        </div>
+        <div class="box">
+            <h2>100%</h2>
+            <p>User Satisfaction</p>
+        </div>
+    </div>
+</div>
+
+<!-- Profile -->
+<div id="profile" class="page">
+    <div class="card">
+        <h2>Profile</h2>
+        <p>Edit or Delete feedback from review page.</p>
+    </div>
+</div>
+
+<script>
+let rating = 0;
+let feedbacks = [];
+
+function showPage(id){
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+}
+
+function rate(num){
+    rating=num;
+    let stars=document.querySelectorAll(".stars span");
+    stars.forEach((star,index)=>{
+        if(index<num) star.classList.add("activeStar");
+        else star.classList.remove("activeStar");
+    });
+}
+
+function submitFeedback(){
+    let name=document.getElementById("name").value;
+    let category=document.getElementById("category").value;
+    let comment=document.getElementById("comment").value;
+
+    if(name=="" || comment=="" || rating==0){
+        alert("Fill all fields");
+        return;
+    }
+
+    feedbacks.push({name,category,comment,rating});
+    renderFeedback();
+    updateDashboard();
+
+    alert("Thank You!");
+
+    document.getElementById("name").value="";
+    document.getElementById("comment").value="";
+    showPage("display");
+}
+
+function renderFeedback(){
+    let list=document.getElementById("feedbackList");
+    list.innerHTML="";
+
+    feedbacks.forEach((item,index)=>{
+        list.innerHTML += `
+        <div class="feedback-card">
+            <h3>${item.name}</h3>
+            <p><b>Category:</b> ${item.category}</p>
+            <p><b>Rating:</b> ${"⭐".repeat(item.rating)}</p>
+            <p>${item.comment}</p>
+            <button onclick="deleteFeedback(${index})">Delete</button>
+        </div>`;
+    });
+}
+
+function deleteFeedback(index){
+    feedbacks.splice(index,1);
+    renderFeedback();
+    updateDashboard();
+}
+
+function updateDashboard(){
+    document.getElementById("total").innerText=feedbacks.length;
+
+    let total=feedbacks.reduce((sum,f)=>sum+f.rating,0);
+    let avg=feedbacks.length ? (total/feedbacks.length).toFixed(1):0;
+    document.getElementById("avg").innerText=avg;
+}
+
+function searchFeedback(){
+    let value=document.getElementById("search").value.toLowerCase();
+    let cards=document.querySelectorAll(".feedback-card");
+
+    cards.forEach(card=>{
+        let name=card.querySelector("h3").innerText.toLowerCase();
+        card.style.display=name.includes(value) ? "block" : "none";
+    });
+}
+</script>
+
+</body>
+</html>
